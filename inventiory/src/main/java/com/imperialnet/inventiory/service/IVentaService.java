@@ -13,7 +13,7 @@ import java.util.List;
 public interface IVentaService {
 
     @Transactional
-    public void registrarVenta(Venta venta, List<ItemVenta> itemsVenta, HttpSession sesion);
+    public void registrarVenta(Venta venta, List<ItemVenta> itemsVenta, HttpSession sesion, int descuento);
 
     public List<Venta> getVentas();
 
@@ -46,4 +46,6 @@ public interface IVentaService {
     public List<Venta> findVentasByUsuarioAndFecha(Long idUsuario, int mes, int ano);
 
     public float calcularTotalVentasDiarias(List<Venta> ventas);
+    
+    public Float aplicarPorcentajeDescuento(Venta venta, int descuento);
 }

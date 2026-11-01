@@ -11,6 +11,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Controller
@@ -38,7 +39,7 @@ public class ProductoController {
         Long idUsuario = (Long) session.getAttribute("idUsuario");
         List<Producto> listaProductos = prodServ.obtenerProductosPorUsuario(idUsuario);
         model.addAttribute("listadoProductos", listaProductos);
-        Float capital=prodServ.obtenerCapital(idUsuario);
+        BigDecimal capital=prodServ.obtenerCapital(idUsuario);
         model.addAttribute("capital", capital);
         return "verProductos"; // Nombre de la vista Thymeleaf
     }

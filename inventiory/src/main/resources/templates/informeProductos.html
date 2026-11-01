@@ -51,7 +51,8 @@
                                     <td th:text="${indice.index +1}"></td>
                                     <td th:text="${producto[0]}"></td>
                                     <td th:text="${producto[1]}"></td>
-                                    <td class="text-center" th:text="${producto[2]}"></td>
+                                    <td th:text="${producto[2]}"></td>
+                                   
                                 </tr>
                             </tbody>
                         </table>
@@ -64,21 +65,24 @@
                 </div>
             </div>
         </div>
-
-
-
-
-
-        <div th:insert="componentes/footer :: footer"></div>
-
-        <!-- Scroll to Top Button-->
         <a class="scroll-to-top rounded" href="#page-top">
             <i class="fas fa-angle-up"></i>
         </a>
+        <div th:insert="componentes/footer :: footer"></div>
+
+        <!-- Scroll to Top Button-->
+
+        <div th:insert="componentes/modalCambioClave:: modalCambioClave"></div>
 
         <div th:insert="componentes/modalCerrarSesion :: modalCerrarSesion"></div>
 
         <div th:insert="componentes/scriptsBTyJS :: scriptsBTyJS"></div>
-
+        <div th:if="${session.abrirModal}">
+            <script >
+                $(document).ready(function () {
+                    $('#cambiarContrasenaModal').modal('show');
+                });
+            </script>
+        </div>
     </body>
 </html>

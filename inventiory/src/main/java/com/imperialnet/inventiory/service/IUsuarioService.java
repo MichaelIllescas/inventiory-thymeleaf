@@ -20,9 +20,11 @@ public interface IUsuarioService {
 
     public void eliminarUsuario(Long id);
 
-    public Optional<Usuario> buscarUsuarioPorUserName(String usernombreUsuario);
+    public Usuario buscarUsuarioPorUserName(String usernombreUsuario);
 
     public String obtenerClavePorId(Long usuarioId);
 
     public void anularUsuario(Usuario usuario);
+    
+    
 }

@@ -93,6 +93,7 @@ public class VentaController {
     public String agregarProducto(@RequestParam(value = "idProducto", required = false) Long idProducto,
                                   Model model,
                                   @RequestParam(value = "cant") float cant,
+                                 
                                   HttpSession sesion) 
     {
         // Validar si se seleccionó un producto válido
@@ -147,6 +148,7 @@ public class VentaController {
     @Transactional
     public String confirmarVenta(HttpSession sesion,
                                  Model model,
+                                     @RequestParam(value = "descuento", defaultValue = "0") int descuento,
                                  @RequestParam(value = "observaciones") String obs)
     {
         // Obtener la fecha actual
@@ -191,7 +193,8 @@ public class VentaController {
         venta.setObservaciones(obs);
         venta.setFechaVenta(fechaDeHoyLocalDate);
 
-        ventaServ.registrarVenta(venta, productosSeleccionados, sesion);
+       
+        ventaServ.registrarVenta(venta, productosSeleccionados, sesion, descuento);
 
         // Limpiar atributos de sesión después de registrar la venta
         sesion.removeAttribute("cliente");
@@ -202,7 +205,7 @@ public class VentaController {
 
         // Establecer confirmación de venta exitosa en la sesión
         sesion.setAttribute("confirmacionVenta", "Se ha registrado la venta correctamente.");
-        return "redirect:/registrarVenta"; // Redirige al formulario de registro de venta
+        return "redirect:/notificacionesStock"; // Redirige al formulario de registro de venta
     }
 
     @GetMapping("/verVentas")

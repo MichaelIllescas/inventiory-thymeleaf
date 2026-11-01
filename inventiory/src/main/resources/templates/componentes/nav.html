@@ -1,7 +1,7 @@
 <nav th:fragment="nav" class="navbar navbar-expand-lg bg-gradient-dark-blue animated--grow-in">
     <div class="container">
         <!-- Logo -->
-        <a class="navbar-brand  " th:href="@{/index}">
+        <a class="navbar-brand  " th:href="@{/notificaciones}">
             <img th:src="@{/img/logoInventiory-removebg-preview.png}" class=" rounded-pill logo-animation shadow img-fluid" alt="Logo">
         </a>
 
@@ -71,6 +71,44 @@
                 </li>
             </ul>
             <ul class="navbar-nav ml-auto">
+                <li class="nav-item dropdown no-arrow  w-100">
+                    <a class="nav-link dropdown-toggle text-white mt-1" href="#" id="alertsDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fas fa-bell fa-fw"></i>
+                        <!-- Counter - Alerts -->
+                        <span class="badge badge-danger badge-counter" th:if="${session.notificaciones.size()>0 }" th:text="${session.notificaciones.size()}">3+</span>
+
+                    </a>
+                    <!-- Dropdown - Alerts -->
+                    <div  class=" dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in " aria-labelledby="alertsDropdown" >
+                        <div class="d-flex">
+                            <h6 class="dropdown-header">
+                                Centro de Notificaciones
+                            </h6>
+                            <a th:href="@{/marcarLeidas}" class="dropdown-item text-center small text-gray-500">Marcar como leídas</a>
+
+                        </div>
+                        <a th:each="notificacion : ${session.notificaciones}" class=" dropdown-item d-flex align-items-center w-100 " href="#">
+                            <div class="mr-3" >
+                                <div class="icon-circle bg-primary " th:if="${notificacion.tipo.toString() == 'CAMBIO_CONTRASENA'}">
+                                    <i class="fas fa-file-alt text-white"></i>
+                                </div>
+                                <div class="" th:if="${notificacion.tipo.toString() == 'STOCK_BAJO'}" >
+                                    <div class=" bg-warning icon-circle">
+                                        <i class="fas fa-exclamation-triangle text-white"></i>
+                                    </div>
+                                </div>
+
+                            </div>
+                            <div class="w-100 ">
+                                <div class="small text-gray-500 col-12 text-truncate pr-3"  th:text="${notificacion.fecha}">December 12, 2019</div>
+                                <p class="font-weight-bold text-truncate text-wrap pr-3"  th:text="${notificacion.mensaje}">A new monthly report is ready to download!</p>
+                            </div>
+
+                        </a>
+                  
+                        <a class="dropdown-item text-center small text-gray-500" th:href="@{/centroNotificaciones}">Ver todas las notificaciones</a>
+                    </div>
+                </li>
                 <li class="nav-item dropdown no-arrow animated--grow-in">
                     <a class="nav-link dropdown-toggle text-white" href="#" id="userDropdown" role="button"
                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -79,13 +117,22 @@
                     </a>
                     <!-- Dropdown - User Information -->
                     <div class="dropdown-menu dropdown-menu-right shadow custom-dropdown animated--grow-in" aria-labelledby="userDropdown">
+                        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#cambiarContrasenaModal">
+                            <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                            Cambio de Contraseña
+                        </a>
+
                         <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
                             <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
                             Cerrar Sesión
                         </a>
+
                     </div>
+
                 </li>
+
             </ul>
+
         </div>
     </div>
 </nav>

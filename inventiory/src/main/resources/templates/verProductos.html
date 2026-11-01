@@ -71,7 +71,7 @@
             </a>
 
             <div th:insert="componentes/modalCerrarSesion :: modalCerrarSesion"></div>
-
+            <div th:insert="componentes/modalCambioClave:: modalCambioClave"></div>
             <div th:insert="componentes/scriptsBTyJS:: scriptsBTyJS"></div>
             <script>
                 // Inicializa los tooltips
@@ -79,6 +79,13 @@
                     new bootstrap.Tooltip(tooltipElement);
                 });
             </script>
+            <div th:if="${session.abrirModal}">
+                <script >
+                    $(document).ready(function () {
+                        $('#cambiarContrasenaModal').modal('show');
+                    });
+                </script>
+            </div>
     </body>
 
 

@@ -1,23 +1,34 @@
 <!DOCTYPE html>
 <html lang ="es" xmlns:th="http://www.thymeleaf.org">
-<head th:insert="componentes/head :: head"></head>
-<body class="bg-login-image" id="page-top">
+    <head th:insert="componentes/head :: head"></head>
+    <body class="bg-login-image" id="page-top">
 
-   <nav th:insert="componentes/nav :: nav"></<nav></nav>
- 
-   <div th:insert="componentes/cardsIndex:: cardsIndex"></div>
-   
-   
-   <div th:insert="componentes/footer::footer"></div>
-   
- <!-- Scroll to Top Button-->
-    <a class="scroll-to-top rounded" href="#page-top">
-      <i class="fas fa-angle-up"></i>
-    </a>
+        <nav th:insert="componentes/nav :: nav"></<nav></nav>
 
-   <div th:insert="componentes/modalCerrarSesion :: modalCerrarSesion"></div>
- 
-   <div th:insert="componentes/scriptsBTyJS :: scriptsBTyJS"></div>
+            <div th:insert="componentes/cardsIndex:: cardsIndex"></div>
 
-</body>
+
+            <div th:insert="componentes/footer::footer"></div>
+
+            <!-- Scroll to Top Button-->
+            <a class="scroll-to-top rounded" href="#page-top">
+                <i class="fas fa-angle-up"></i>
+            </a>
+            <div th:insert="componentes/modalCerrarSesion :: modalCerrarSesion"></div>
+            <div th:insert="componentes/modalCambioClave:: modalCambioClave"></div>
+
+
+            <div th:insert="componentes/scriptsBTyJS :: scriptsBTyJS"></div>
+
+
+            <div th:if="${session.abrirModal}">
+                <script >
+                    $(document).ready(function () {
+                        $('#cambiarContrasenaModal').modal('show');
+                    });
+                </script>
+            </div>
+
+
+    </body>
 </html>

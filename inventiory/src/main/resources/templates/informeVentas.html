@@ -49,7 +49,6 @@
 
                             </form>
 
-
                         </div>
 
                         <section class="pt-2 w-100">
@@ -119,21 +118,6 @@
                 </div>
             </div>
 
-
-
-
-
-
-
-            <div th:insert="componentes/footer :: footer"></div>
-
-            <a class="scroll-to-top rounded" href="#page-top">
-                <i class="fas fa-angle-up"></i>
-            </a>
-
-            <div th:insert="componentes/modalCerrarSesion :: modalCerrarSesion"></div>
-            <div th:insert="componentes/scriptsBTyJS :: scriptsBTyJS"></div>
-
             <div th:each="venta : ${ventas}">
                 <div class="modal fade" th:id="'ventaModal' + ${venta.id}" tabindex="-1" role="dialog" aria-labelledby="'ventaModalLabel' + ${venta.id}" aria-hidden="true">
                     <div class="modal-dialog" role="document">
@@ -163,6 +147,9 @@
                                     </div>
                                     <div class="col-sm-6">
                                         <p><strong>Fecha de Venta:</strong> <span class="text-primary" th:text="${venta.fechaVenta}"></span></p>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <p><strong>Observaciones:</strong> <span class="text-primary" th:text="${venta.observaciones}"></span></p>
                                     </div>
                                 </div>
 
@@ -283,13 +270,14 @@
 
             </div>
 
+            <div th:insert="componentes/footer :: footer"></div>
 
-
-
-
-
-
-
+            <a class="scroll-to-top rounded" href="#page-top">
+                <i class="fas fa-angle-up"></i>
+            </a>
+            <div th:insert="componentes/modalCambioClave:: modalCambioClave"></div>
+            <div th:insert="componentes/modalCerrarSesion :: modalCerrarSesion"></div>
+            <div th:insert="componentes/scriptsBTyJS :: scriptsBTyJS"></div>
 
             <script>
                 document.addEventListener('DOMContentLoaded', function () {
@@ -299,6 +287,15 @@
                     })
                 });
             </script>
+            <div th:if="${session.abrirModal}">
+                <script >
+                    $(document).ready(function () {
+                        $('#cambiarContrasenaModal').modal('show');
+                    });
+                </script>
+            </div>
+         
+
     </body>
 </html>
 

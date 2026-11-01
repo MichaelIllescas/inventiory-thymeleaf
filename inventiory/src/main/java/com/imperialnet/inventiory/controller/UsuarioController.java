@@ -1,21 +1,29 @@
 package com.imperialnet.inventiory.controller;
 
 import com.imperialnet.inventiory.entities.Rol;
+import com.imperialnet.inventiory.entities.TipoNotificacion;
 import com.imperialnet.inventiory.entities.Usuario;
+import com.imperialnet.inventiory.service.INotificacionService;
 import com.imperialnet.inventiory.service.IRolService;
 import com.imperialnet.inventiory.service.IUsuarioService;
 import com.imperialnet.inventiory.util.PasswordUtils;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
@@ -26,6 +34,9 @@ public class UsuarioController {
 
     @Autowired
     IRolService rolServ;
+
+    @Autowired
+    INotificacionService notificacionService;
 
     // Muestra la lista de usuarios
     @GetMapping("/verUsuarios")
@@ -38,7 +49,7 @@ public class UsuarioController {
 
     // Muestra el formulario para registrar un nuevo usuario
     @GetMapping("/registrarUsuario")
-    public String registrarUsuario() 
+    public String registrarUsuario()
     {
         return "registrarUsuario"; // Retorna la vista registrarUsuario
     }
@@ -47,7 +58,7 @@ public class UsuarioController {
     @PostMapping("/registrarUsuario")
     public String crearUsuario(@ModelAttribute("usuario") Usuario usuario,
                                @RequestParam("rolId") Long rolId,
-                               Model model) 
+                               Model model)
     {
         // Obtener el rol desde el servicio de roles
         Rol rol = rolServ.obtenerRolPorId(rolId);
@@ -85,28 +96,28 @@ public class UsuarioController {
             return "accesoDenegado"; // Redirige a la página de acceso denegado si el rol no es 1 o no está presente
         }
     }
-
+/*
     // Procesa el inicio de sesión del usuario
     @PostMapping("/acceder")
-    public String acceder(Usuario usuario,
+    public String acceder(@ModelAttribute("usuario") Usuario usuario,
                           HttpSession sesion,
-                          Model model) throws NoSuchAlgorithmException 
+                          Model model) throws NoSuchAlgorithmException
     {
         // Buscar el usuario por nombre de usuario
-        Optional<Usuario> user = userServ.buscarUsuarioPorUserName(usuario.getNombreUsuario());
+        Usuario user = userServ.buscarUsuarioPorUserName(usuario.getNombreUsuario());
 
-        if (user.isPresent()) {
+        if (user !=null) {
             // Verificar si el usuario está activo
-            if (user.get().getActivo() != 1) {
+            if (user.getActivo() != 1) {
                 model.addAttribute("error", "Usuario Inhabilitado");
                 return "redirect:/?error=Usuario+Inhabilitado."; // Redirige con el mensaje de error en la URL
             }
             // Verificar si la contraseña coincide
-            if (PasswordUtils.verifyPassword(usuario.getClave(), user.get().getClave())) {
-                sesion.setAttribute("idUsuario", user.get().getId());
-                sesion.setAttribute("rol", user.get().getRol().getId());
-                sesion.setAttribute("userNombre", user.get().getNombreUsuario());
-                return "index"; // Redirige al index después de iniciar sesión
+            if (PasswordUtils.verifyPassword(usuario.getClave(), user.getClave())) {
+                sesion.setAttribute("idUsuario", user.getId());
+                sesion.setAttribute("rol", user.getRol().getId());
+                sesion.setAttribute("userNombre", user.getNombreUsuario());
+                return "redirect:/notificaciones"; // Redirige al index después de iniciar sesión
             } else {
                 model.addAttribute("error", "Las claves no coinciden");
                 return "redirect:/?error=Clave+incorrecta."; // Redirige con el mensaje de error en la URL
@@ -116,6 +127,36 @@ public class UsuarioController {
             return "redirect:/?error=Usuario+inexistente"; // Redirige con el mensaje de error en la URL
         }
     }
+   */
+@PostMapping("/acceder")
+public String acceder(@ModelAttribute("usuario") Usuario usuario,
+                      HttpSession sesion,
+                      Model model) throws NoSuchAlgorithmException {
+    Usuario user = userServ.buscarUsuarioPorUserName(usuario.getNombreUsuario());
+
+    if (user != null) {
+        if (user.getActivo() != 1) {
+            model.addAttribute("error", "Usuario inhabilitado");
+            return "redirect:/?error=Usuario+inhabilitado";
+        }
+
+        if (PasswordUtils.verifyPassword(usuario.getClave(), user.getClave())) {
+            sesion.setAttribute("idUsuario", user.getId());
+            sesion.setAttribute("rol", user.getRol().getId());
+            sesion.setAttribute("userNombre", user.getNombreUsuario());
+            return "redirect:/notificaciones";
+        } else {
+            model.addAttribute("error", "Clave incorrecta");
+            return "redirect:/?error=Clave+incorrecta";
+        }
+    } else {
+        model.addAttribute("error", "Usuario inexistente");
+        return "redirect:/?error=Usuario+inexistente";
+    }
+}
+
+
+
 
     // Cierra la sesión del usuario
     @GetMapping("/cerrar")
@@ -178,4 +219,74 @@ public class UsuarioController {
       userServ.anularUsuario(usu);
     return "redirect:/verUsuarios";
     }
+
+
+    @PostMapping("/cambiarClave")
+    public String cambiarClave(@RequestParam ("action") String accion,
+                               @RequestParam ("contrasenaActual") String contrasenaIngresada,
+                               @RequestParam ("nuevaContrasena") String nuevaContrasena,
+                               @RequestParam ("confirmarContrasena") String confirmarContrasena,
+                               HttpServletRequest request,
+                               HttpSession sesion) throws NoSuchAlgorithmException
+
+    {
+         // Obtener la URL de la página desde la que se hizo la solicitud
+        String referer = request.getHeader("Referer");
+
+        if ("cancelar".equals(accion) ){
+             sesion.removeAttribute("errorClaveNueva");
+          sesion.removeAttribute("errorClaveBD");
+            this.cancelarCambioClave(request, sesion);
+        }
+        Usuario usuario= userServ.obtenerUsuarioPorId((Long) sesion.getAttribute("idUsuario"));
+        String claveBD=usuario.getClave();
+        if("confirmar".equals(accion)){
+
+            if(!PasswordUtils.verifyPassword(contrasenaIngresada,claveBD) ){
+                sesion.setAttribute("abrirModal", true);
+                sesion.setAttribute("errorClaveBD", "La contraseña Ingresada no es correcta");
+
+                return "redirect:" + referer;
+            }
+            sesion.removeAttribute("errorClaveBD");
+
+            if(!nuevaContrasena.equals(confirmarContrasena)){
+                sesion.setAttribute("abrirModal", true);
+                sesion.setAttribute("errorClaveNueva", "La contraseñas no coinciden");
+
+                return "redirect:" + referer;
+            }
+             sesion.removeAttribute("errorClaveNueva");
+
+
+            usuario.setClave(nuevaContrasena);
+            String mensaje = "Tu contraseña ha sido actualizada.";
+            notificacionService.crearNotificacion(mensaje, TipoNotificacion.CAMBIO_CONTRASENA, usuario);
+
+            userServ.editarUsuario((Long)sesion.getAttribute("idUsuario"), usuario);
+
+
+           sesion.removeAttribute("abrirModal");
+           sesion.removeAttribute("errorClaveNueva");
+
+
+            return "redirect:/notificaciones";
+        }
+         return "redirect:" + referer;
+
+    }
+
+
+    public String cancelarCambioClave(HttpServletRequest request,
+                                        HttpSession sesion)
+    {
+       sesion.removeAttribute("abrirModal");
+        String referer = request.getHeader("Referer");
+
+
+        // Redirigir a la misma página
+        return "redirect:" + referer;
+    }
+
+
 }

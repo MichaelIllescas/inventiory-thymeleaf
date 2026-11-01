@@ -23,6 +23,6 @@ public class WebConfig implements WebMvcConfigurer{
     public void addInterceptors(InterceptorRegistry registry)
     {
         registry.addInterceptor(sessionInterceptor)
-                .excludePathPatterns("/","/acceder", "/cerrar", "/css/**", "/js/**", "/img/**")
+                .excludePathPatterns("/landing", "/login","/","/acceder", "/cerrar", "/css/**", "/js/**", "/img/**")
                 .addPathPatterns("/**");
     }}

@@ -1,7 +1,10 @@
 package com.imperialnet.inventiory.service;
 
 import com.imperialnet.inventiory.entities.Producto;
+import com.imperialnet.inventiory.entities.Usuario;
 import jakarta.servlet.http.HttpSession;
+
+import java.math.BigDecimal;
 import java.util.List;
 
 public interface IProductoService {
@@ -20,5 +23,7 @@ public interface IProductoService {
 
     public void actualizarStock(Long id, float cantidad);
 
-    public Float obtenerCapital(Long idUsuario);
+    public BigDecimal obtenerCapital(Long idUsuario);
+    
+    public void verificarStock(Producto producto, Usuario usuario) ;
 }

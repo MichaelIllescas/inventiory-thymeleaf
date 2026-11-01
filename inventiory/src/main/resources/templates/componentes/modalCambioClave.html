@@ -1,0 +1,46 @@
+<div th:fragment="modalCambioClave" class="modal fade animated--grow-in" id="cambiarContrasenaModal" tabindex="-1" role="dialog" aria-labelledby="cambiarContrasenaModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-dark">Cambiar Contraseña</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form th:action="@{/cambiarClave}" method="post">
+                    <div class="form-group">
+                        <label for="contrasenaActual" class="text-dark">Contraseña Actual</label>
+                        <input type="password" class="form-control" id="contrasenaActual" name="contrasenaActual" >
+                           <div th:if="${session.errorClaveBD}" class="text-danger">
+                            <small th:text="${session.errorClaveBD}"></small>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="nuevaContrasena" class="text-dark">Nueva Contraseña</label>
+                        <input type="password" class="form-control" id="nuevaContrasena" name="nuevaContrasena" >
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmarContrasena" class="text-dark">Confirmar Nueva Contraseña</label>
+                        <input type="password" class="form-control" id="confirmarContrasena" name="confirmarContrasena" >
+                     <div th:if="${session.errorClaveNueva}" class="text-danger">
+                            <small th:text="${session.errorClaveNueva}"></small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+
+                        <button type="submit" class="btn btn-danger" name="action" value="cancelar">Cancelar</button>
+
+                        <button type="submit" class="btn btn-success" name="action" value="confirmar">Confirmar</button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+

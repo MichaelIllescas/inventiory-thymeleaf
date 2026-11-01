@@ -1,29 +1,48 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Inicio de Sesión</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <link href="css/sb-admin-2.css" rel="stylesheet"> <!-- Asegúrate de tener tu propio CSS personalizado -->
-</head>
-<body class="bg-login-image">
+    <!-- Bootstrap -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="css/sb-admin-2.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-Vy6YoLHZG7C9kXzv77tk4rNP+T9USbHbD8RIhbgM7IN4/HTlTxXbJ+YmqAr0z6kHRtIz3H8hE1m9gSfsLxzhGA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
+    <!-- FontAwesome para íconos -->
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</head>
+
+<body class="bg-login-image">
 <div class="container d-flex align-items-center justify-content-center min-vh-100">
-    <div class="card shadow p-4" style="max-width: 380px; min-width: 360px width:100%;">
-        <h2 class="card-title text-center">Inicio de Sesión</h2>
-        <form th:action="@{/acceder}" method="post" class="needs-validation">
+    <div class="card shadow p-4" style="max-width: 400px; width: 100%;">
+        <h3 class="card-title text-center mb-4">Iniciar Sesión</h3>
+        <form th:action="@{/acceder}" method="post" class="needs-validation" onsubmit="guardarUsuario()">
             <div class="form-group">
                 <label for="nombreUsuario">Usuario</label>
                 <input type="text" class="form-control form-control-lg" id="nombreUsuario" name="nombreUsuario" required>
             </div>
+
             <div class="form-group">
                 <label for="clave">Contraseña</label>
-                <input type="password" class="form-control form-control-lg" id="clave" name="clave" required>
+                <div class="input-group">
+                    <input type="password" class="form-control form-control-lg" id="clave" name="clave" required>
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword()">
+                            <i id="toggleIcon" class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
             </div>
-            <button type="submit" class="btn btn-primary btn-block">Iniciar Sesión</button>
-            
+
+            <div class="form-group form-check">
+                <input type="checkbox" class="form-check-input" id="recordarme">
+                <label class="form-check-label" for="recordarme">Recordarme</label>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Ingresar</button>
+
+            <!-- Mensajes -->
             <div th:if="${param.error}" class="alert alert-danger text-center mt-3 py-1">
                 <p th:text="${param.error}"></p>
             </div>
@@ -33,7 +52,7 @@
             <div th:if="${sessionExpired}" class="alert alert-warning text-center mt-3 py-1" role="alert">
                 <span th:text="${sessionExpired}"></span>
             </div>
-            
+
             <div class="text-center mt-3">
                 <a href="#" data-toggle="modal" data-target="#forgotPasswordModal">¿Olvidaste tu contraseña?</a>
             </div>
@@ -41,13 +60,13 @@
     </div>
 </div>
 
-<!-- Modal -->
+<!-- Modal Recuperación -->
 <div class="modal fade" id="forgotPasswordModal" tabindex="-1" role="dialog" aria-labelledby="forgotPasswordModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="forgotPasswordModalLabel">Recuperar Contraseña</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -61,9 +80,48 @@
     </div>
 </div>
 
-<!-- Bootstrap JS and dependencies -->
+<!-- Scripts -->
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script>
+    // Mostrar/ocultar contraseña
+    function togglePassword() {
+      const input = document.getElementById("clave");
+      const icon = document.getElementById("toggleIcon");
+
+      if (input.type === "password") {
+        input.type = "text";
+        icon.classList.remove("fa-eye");
+        icon.classList.add("fa-eye-slash");
+      } else {
+        input.type = "password";
+        icon.classList.remove("fa-eye-slash");
+        icon.classList.add("fa-eye");
+      }
+    }
+
+    // Recordarme: guardar nombre de usuario en localStorage
+    function guardarUsuario() {
+      const usuario = document.getElementById("nombreUsuario").value;
+      const recordar = document.getElementById("recordarme").checked;
+
+      if (recordar) {
+        localStorage.setItem("usuarioRecordado", usuario);
+      } else {
+        localStorage.removeItem("usuarioRecordado");
+      }
+    }
+
+    // Al cargar, completar si hay usuario guardado
+    window.onload = () => {
+      const usuario = localStorage.getItem("usuarioRecordado");
+      if (usuario) {
+        document.getElementById("nombreUsuario").value = usuario;
+        document.getElementById("recordarme").checked = true;
+      }
+    };
+</script>
 </body>
 </html>

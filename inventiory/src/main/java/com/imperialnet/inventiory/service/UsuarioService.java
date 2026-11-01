@@ -73,9 +73,10 @@ public class UsuarioService implements IUsuarioService{
     }
 
     @Override
-    public Optional<Usuario> buscarUsuarioPorUserName(String usernombreUsuario) {
+    public Usuario buscarUsuarioPorUserName(String usernombreUsuario) {
         return usuarioRepo.findByNombreUsuario(usernombreUsuario);
     }
+    
      // Método para obtener la clave de un usuario por su ID
     public String obtenerClavePorId(Long usuarioId) {
         return usuarioRepo.findClaveById(usuarioId);

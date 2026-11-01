@@ -21,9 +21,9 @@ public class IndexController {
     }
  
    @GetMapping("/")
-    public String login(HttpServletRequest request, RedirectAttributes redirectAttributes) {
+    public String login() {
        
-        return "login"; // Ensure you have a login.html Thymeleaf template
+        return "login"; 
     }
     
     @GetMapping("/menuProductos")
@@ -53,5 +53,11 @@ public class IndexController {
     {
         return "index";
     }
+    @GetMapping("/login")
+    public String log(){
+        return "login";
+    }
+    
+    
 
 }

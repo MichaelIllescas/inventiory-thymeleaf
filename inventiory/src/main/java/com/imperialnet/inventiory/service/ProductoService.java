@@ -1,12 +1,15 @@
 package com.imperialnet.inventiory.service;
 
 import com.imperialnet.inventiory.entities.Producto;
+import com.imperialnet.inventiory.entities.TipoNotificacion;
+import com.imperialnet.inventiory.entities.Usuario;
 import com.imperialnet.inventiory.repository.ProductoRepository;
 import com.imperialnet.inventiory.repository.UsuarioRepository;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,7 +20,10 @@ public class ProductoService implements IProductoService {
     private ProductoRepository prodRepo;
     @Autowired
     private IUsuarioService usuServ;
-
+    @Autowired
+    INotificacionService notificacionService;
+    
+    
     @Override
     public void crearProducto(Producto producto, HttpSession sesion) 
     {
@@ -77,24 +83,31 @@ public class ProductoService implements IProductoService {
     }
 
     @Override
-    public Float obtenerCapital(Long idUsuario) {
-            List<Producto> productos = this.obtenerProductosPorUsuario(idUsuario);
+    public BigDecimal obtenerCapital(Long idUsuario) {
+        List<Producto> productos = this.obtenerProductosPorUsuario(idUsuario);
+        BigDecimal capital = BigDecimal.ZERO;
 
-            Float capital=0F;
-          // Verificar si la lista de productos no es null
-    // Verificar si la lista de productos no es null
-    
         for (Producto producto : productos) {
-            // Manejar el caso de valores nulos para precio y stock
-            Float precio = producto.getPrecio();
-            Float stock = producto.getStock();
+            Float precioFloat = producto.getPrecio();
+            Float stockFloat = producto.getStock();
 
-            // Asegurarse de que precio y stock no sean null
-            
-               capital += (precio * stock);
-          
-    }
-    
+            if (precioFloat != null && stockFloat != null) {
+                BigDecimal precio = BigDecimal.valueOf(precioFloat);
+                BigDecimal stock = BigDecimal.valueOf(stockFloat);
+                capital = capital.add(precio.multiply(stock));
+            }
+        }
+
         return capital;
     }
+
+    @Override
+    public void verificarStock(Producto producto, Usuario usuario) {
+    if (producto.getStock() == 0) {
+        String mensaje = "El producto " + producto.getNombre()+ " " + producto.getMarca() + " " + producto.getDescripcion() + " no tiene stock.";
+        notificacionService.crearNotificacion(mensaje, TipoNotificacion.STOCK_BAJO, usuario);
+    }
+    }
+    
+    
 }

@@ -35,48 +35,57 @@ public class VentaService implements IVentaService {
     @Autowired
     private EntityManager entityManager;
 
-   @Override
-@Transactional
-public void registrarVenta(Venta venta, List<ItemVenta> itemsVenta, HttpSession session) {
-    // Verificar el stock disponible para cada producto y asignar el precio unitario
-    for (ItemVenta itemVenta : itemsVenta) {
-        Producto producto = itemVenta.getProducto();
-        // Asignar el precio unitario del producto al itemVenta
-        itemVenta.setPrecioUnitario(producto.getPrecio()); // Asignar el precio del producto
+    @Autowired
+    private IProductoService productoService;
 
-        // Verificar stock
-        if (producto.getStock() < itemVenta.getCantidad() || producto.getStock() == 0) {
-            session.setAttribute("errorProd", "No queda Stock del producto que desea vender.");
-            return;
+    @Override
+    @Transactional
+    public void registrarVenta(Venta venta, List<ItemVenta> itemsVenta, HttpSession session, int descuento) {
+        // Verificar el stock disponible para cada producto y asignar el precio unitario
+        for (ItemVenta itemVenta : itemsVenta) {
+            Producto producto = itemVenta.getProducto();
+            // Asignar el precio unitario del producto al itemVenta
+            itemVenta.setPrecioUnitario(producto.getPrecio()); // Asignar el precio del producto
+
+            // Verificar stock
+            if (producto.getStock() < itemVenta.getCantidad() || producto.getStock() == 0) {
+                session.setAttribute("errorProd", "No queda Stock del producto que desea vender.");
+                return;
+            }
         }
-    }
 
-    // Deducir el stock de cada producto
-    for (ItemVenta itemVenta : itemsVenta) {
-        Producto producto = itemVenta.getProducto();
+        // Deducir el stock de cada producto
+        for (ItemVenta itemVenta : itemsVenta) {
+            Producto producto = itemVenta.getProducto();
 
-        if (producto.getStock() > 0) {
-            producto.setStock(producto.getStock() - itemVenta.getCantidad());
-            productoRepo.save(producto); // Guardar el cambio en la base de datos
+            if (producto.getStock() > 0) {
+                producto.setStock(producto.getStock() - itemVenta.getCantidad());
+                productoRepo.save(producto); // Guardar el cambio en la base de datos
+                productoService.verificarStock(producto, usuSev.obtenerUsuarioPorId((Long) session.getAttribute("idUsuario")));
+            }
         }
+
+        // Asignar la lista de itemsVenta a la venta
+        venta.setItemsVenta(itemsVenta);
+
+        // Asignar la venta a cada ItemVenta para establecer la relación bidireccional
+        for (ItemVenta itemVenta : itemsVenta) {
+            itemVenta.setVenta(venta);
+        }
+
+        // Calcular el total de la venta si es necesario
+        float total = calcularTotalVenta(itemsVenta);
+
+        total = total - (total * descuento / 100);
+
+        Math.round(total);
+        venta.setTotal(total);
+
+        // Guardar la venta en la base de datos usando merge() si es necesario
+        entityManager.merge(venta); // Reasocia la entidad detached con el contexto de persistencia
+
     }
 
-    // Asignar la lista de itemsVenta a la venta
-    venta.setItemsVenta(itemsVenta);
-
-    // Asignar la venta a cada ItemVenta para establecer la relación bidireccional
-    for (ItemVenta itemVenta : itemsVenta) {
-        itemVenta.setVenta(venta);
-    }
-
-    // Calcular el total de la venta si es necesario
-    float total = calcularTotalVenta(itemsVenta);
-    Math.round(total);
-    venta.setTotal(total);
-
-    // Guardar la venta en la base de datos usando merge() si es necesario
-    entityManager.merge(venta); // Reasocia la entidad detached con el contexto de persistencia
-}
     @Override
     public List<Venta> getVentas() {
         return ventaRepo.findAll();
@@ -123,15 +132,14 @@ public void registrarVenta(Venta venta, List<ItemVenta> itemsVenta, HttpSession 
 
     @Override // Método para obtener las ventas filtradas por mes y anio
     public List<Venta> obtenerVentasPorMesYAño(List<Venta> ventas, int mes, int anio) {
-    return ventas.stream()
-            .filter(venta -> venta.getFechaVenta().getMonthValue() == mes && venta.getFechaVenta().getYear() == anio)
-            .collect(Collectors.toList());
-}
+        return ventas.stream()
+                .filter(venta -> venta.getFechaVenta().getMonthValue() == mes && venta.getFechaVenta().getYear() == anio)
+                .collect(Collectors.toList());
+    }
 
     @Override
     public Cliente obtenerClienteQueMasComproEnMes(int mes, long idUser) {
         List<Venta> ventasDelMes = new ArrayList<>();
-
 
         // Filtrar las ventas del mes especificado
         List<Venta> todasLasVentas = ventaRepo.findByUsuarioId(idUser);
@@ -172,7 +180,7 @@ public void registrarVenta(Venta venta, List<ItemVenta> itemsVenta, HttpSession 
         // Obtener todas las ventas del cliente
         List<Venta> ventasCliente = new ArrayList<>();
 
-        List<Venta> todasLasVentas = ventaRepo.findByUsuarioId( idUser);
+        List<Venta> todasLasVentas = ventaRepo.findByUsuarioId(idUser);
         for (Venta venta : todasLasVentas) {
             if (venta.getCliente().getId().equals(clienteId) && venta.getFechaVenta().getMonthValue() == mes) {
                 ventasCliente.add(venta);
@@ -181,7 +189,7 @@ public void registrarVenta(Venta venta, List<ItemVenta> itemsVenta, HttpSession 
 
         // Calcular el monto total de compras del cliente en el mes
         for (Venta venta : ventasCliente) {
-            totalCompras = totalCompras +venta.getTotal();
+            totalCompras = totalCompras + venta.getTotal();
         }
 
         return totalCompras;
@@ -190,44 +198,57 @@ public void registrarVenta(Venta venta, List<ItemVenta> itemsVenta, HttpSession 
     @Override
     public float obtenerMontoTotalComprasEnMes(List<Venta> ventas) {
 
-        float total=0;
-        
-        for(Venta venta:ventas){
-            total+=venta.getTotal();
+        float total = 0;
+
+        for (Venta venta : ventas) {
+            total += venta.getTotal();
         }
         return total;
     }
-    
-      @Override
+
+    @Override
     public List<Object[]> obtenerTopProductosVendidos(int mes, Long usuarioId) {
-        return entityManager.createQuery(
-            "SELECT iv.producto.nombre, iv.producto.descripcion, SUM(iv.cantidad) as cantidadVendida " +
-            "FROM Venta v JOIN v.itemsVenta iv " +
-            "WHERE MONTH(v.fechaVenta) = :mes AND v.usuario.id = :usuarioId " +
-            "GROUP BY iv.producto.id " +
-            "ORDER BY cantidadVendida DESC", Object[].class)
-            .setParameter("mes", mes)
-            .setParameter("usuarioId", usuarioId)
-            .setMaxResults(10)
-            .getResultList();
+        List<Object[]> listado = entityManager.createQuery(
+                "SELECT iv.producto.nombre, iv.producto.descripcion, SUM(iv.cantidad) as cantidadVendida "
+                + "FROM Venta v JOIN v.itemsVenta iv "
+                + "WHERE MONTH(v.fechaVenta) = :mes AND v.usuario.id = :usuarioId "
+                + "GROUP BY iv.producto.id "
+                + "ORDER BY cantidadVendida DESC", Object[].class)
+                .setParameter("mes", mes)
+                .setParameter("usuarioId", usuarioId)
+                .setMaxResults(10)
+                .getResultList();
+
+        for (Object[] obt : listado) {
+            // Asegúrate de que el índice 2 sea un Double
+            Double cantidadVendida = (Double) obt[2];
+            if (cantidadVendida != null) {
+                // Truncar la cantidadVendida a dos decimales
+                cantidadVendida = Math.floor(cantidadVendida * 100.0) / 100.0;
+                obt[2] = cantidadVendida;
+            }
+        }
+
+        return listado;
     }
-    
-       @Override
+
+    @Override
     public List<Venta> obtenerVentasPorCliente(Long clienteId) {
         return ventaRepo.findByClienteId(clienteId);
     }
-    
-     @Override
+
+    @Override
     public List<Venta> obtenerVentasPorClienteYUsuario(Long clienteId, Long usuarioId) {
         return ventaRepo.findByClienteIdAndUsuarioId(clienteId, usuarioId);
     }
-    
+
     @Override
     public List<Venta> filterVentasByFecha(Long idUsuario, int dia, int mes, int ano) {
         LocalDate fecha = LocalDate.of(ano, mes, dia);
         return ventaRepo.findVentasByUsuarioAndFecha(idUsuario, fecha);
     }
-     public List<Venta> findVentasByUsuarioAndFecha(Long idUsuario, int mesSeleccionado, int yearSeleccionado) {
+
+    public List<Venta> findVentasByUsuarioAndFecha(Long idUsuario, int mesSeleccionado, int yearSeleccionado) {
         // Llamar al método del repositorio con el año y el mes proporcionados
         return ventaRepo.findVentasByUsuarioAndFecha(idUsuario, yearSeleccionado, mesSeleccionado);
     }
@@ -235,13 +256,21 @@ public void registrarVenta(Venta venta, List<ItemVenta> itemsVenta, HttpSession 
     @Override
     public float calcularTotalVentasDiarias(List<Venta> ventas) {
 
-       Float totalVentasDiarias =0F;
-       
-       for(Venta venta:ventas){
-       
-       totalVentasDiarias+=venta.getTotal();
-       }
-       return totalVentasDiarias;
+        Float totalVentasDiarias = 0F;
+
+        for (Venta venta : ventas) {
+
+            totalVentasDiarias += venta.getTotal();
+        }
+        return totalVentasDiarias;
     }
-    
+
+    @Override
+    public Float aplicarPorcentajeDescuento(Venta venta, int descuento) {
+        Float total = venta.getTotal();
+
+        total = total - (total * descuento / 100);
+        return total;
+    }
+
 }

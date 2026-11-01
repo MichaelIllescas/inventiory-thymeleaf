@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:insert="componentes/head :: head"></head>
+<body class="bg-login-image" id="page-top">
+
+    <nav th:insert="componentes/nav :: nav"></nav>
+
+    <!-- Contenido principal -->
+    <div class="container my-4">
+        <h1 class="mb-4">Notificaciones</h1>
+        
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th scope="col">Fecha</th>
+                        <th scope="col">Mensaje</th>
+                        <th scope="col">Alerta</th>
+                        <th scope="col">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-gradient-light">
+                    <tr th:each="notificacion : ${session.notificacionesCentro}">
+                        <td th:text="${notificacion.fecha}">12/12/2019</td>
+                        <td th:text="${notificacion.mensaje}">A new monthly report is ready to download!</td>
+                        <td>
+                             <div class="mr-3" >
+                                <div class="icon-circle bg-primary " th:if="${notificacion.tipo.toString() == 'CAMBIO_CONTRASENA'}">
+                                    <i class="fas fa-file-alt text-white"></i>
+                                </div>
+                                <div class="" th:if="${notificacion.tipo.toString() == 'STOCK_BAJO'}" >
+                                    <div class=" bg-warning icon-circle">
+                                        <i class="fas fa-exclamation-triangle text-white"></i>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </td>
+                        <td>
+                            <form th:method="POST" th:action="@{/marcarNotificacionLeida}">
+
+                               <input type="hidden" th:value="${notificacion.id}" name="idNotificacion"/>
+
+                      
+                            <button type="submit" class="btn btn-sm btn-success" th:if="!${notificacion.leido}">
+                                Marcar como leída
+                            </button>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div th:insert="componentes/footer::footer"></div>
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+    <div th:insert="componentes/modalCambioClave:: modalCambioClave"></div>
+    <div th:insert="componentes/modalCerrarSesion :: modalCerrarSesion"></div>
+
+    <div th:insert="componentes/scriptsBTyJS :: scriptsBTyJS"></div>
+
+    <div th:if="${session.abrirModal}">
+        <script>
+            $(document).ready(function () {
+                $('#cambiarContrasenaModal').modal('show');
+            });
+        </script>
+    </div>
+</body>
+</html>

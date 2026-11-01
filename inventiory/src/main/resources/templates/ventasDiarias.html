@@ -314,7 +314,7 @@
         <a class="scroll-to-top rounded" href="#page-top">
             <i class="fas fa-angle-up"></i>
         </a>
-
+        <div th:insert="componentes/modalCambioClave:: modalCambioClave"></div>
         <div th:insert="componentes/modalCerrarSesion :: modalCerrarSesion"></div>
         <div th:insert="componentes/scriptsBTyJS :: scriptsBTyJS"></div>
 
@@ -327,6 +327,13 @@
                 })
             });
         </script>
+        <div th:if="${session.abrirModal}">
+            <script >
+                $(document).ready(function () {
+                    $('#cambiarContrasenaModal').modal('show');
+                });
+            </script>
+        </div>
     </body>
 </html>
 
