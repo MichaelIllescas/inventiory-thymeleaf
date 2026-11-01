@@ -16,7 +16,7 @@
 
 ### NetBeans ###
 target/
-src/main/resources/application.properties
+.env
 
 ### VS Code ###
 .vscode/
